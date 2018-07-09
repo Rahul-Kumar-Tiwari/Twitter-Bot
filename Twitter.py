@@ -36,8 +36,7 @@ while True:
     def status():
         status=input("enter any Status: ")
         user_id = input("enter any id to upload the status:")
-        loc=input("enter any location: ")
-        api.update_status(status,user_id,loc,loc)
+        api.update_status(status,user_id)
     if choice==1:
         retrive()
     if choice==2:
