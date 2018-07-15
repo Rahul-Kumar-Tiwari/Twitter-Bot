@@ -1,8 +1,13 @@
 import tweepy
+from tweepy.streaming import StreamListener
 from pprint import pprint
 import sys
 import time
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
 while True:
+
     print("1.Retrive tweets")
     print("2.Count the followers")
     print("3.Determine the status")
@@ -10,7 +15,8 @@ while True:
     print("5.compare tweets")
     print("6.Sentiment the Tweets")
     print("7.Text a message")
-    print("8.Exit")
+    print("8.To ploat the Graph")
+    print("9.Exit")
     choice=int(input("Enter your choice: "))
     consumer_key = "uhHcvdFqHeHsRsUUwkXqJgx2L"
     consumer_secret = 'f6q2F7IB4WiEwZj9Bt7Uvtd8QlXOrhRBLCeEAthUrM30UxhqR5'
@@ -19,7 +25,6 @@ while True:
     auth=tweepy.OAuthHandler(consumer_key,consumer_secret)
     auth.set_access_token(access_token,access_token_secret)
     api=tweepy.API(auth)
-    print(api)
     def retrive():
         m=str(input("enter any HASH tag for search:"))
         tweets=api.search(m,lang='english',count="50",tweet_mode='extended')
@@ -95,8 +100,57 @@ while True:
             print("{} is the best user of twitter".format(user.name))
         else:
             print("{} is the best user of twitter".format(user1.name))
+    def Ploat_graph():
+        class StdOutListener(StreamListener):
 
-    if choice==1:om0m
+            def on_data(self, data):
+                print(data)
+                return True
+
+            def on_error(self, status):
+                print(status)
+
+        l = StdOutListener()
+        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        auth.set_access_token(access_token, access_token_secret)
+        stream = tweepy.Stream(auth,l)
+        stream.filter(track=['python', 'javascript', 'ruby'])
+
+        tweets_data_path = 'D:/twitter_data.txt'
+        tweets_data = []
+        tweets_file = open(tweets_data_path, "r")
+        for line in tweets_file:
+            try:
+                tweet = json.loads(line)
+                tweets_data.append(tweet)
+            except:
+                continue
+        print(len(tweets_data))
+        tweets = pd.DataFrame()
+        tweets['text'] = map(lambda tweet: tweet['text'], tweets_data)
+        tweets['lang'] = map(lambda tweet: tweet['lang'], tweets_data)
+        tweets['country'] = map(lambda tweet: tweet['place']['country'] if tweet['place'] != None else None, tweets_data)
+        tweets_by_lang = tweets['lang'].value_counts()
+        fig, ax = plt.subplots()
+        ax.tick_params(axis='x', labelsize=15)
+        ax.tick_params(axis='y', labelsize=10)
+        ax.set_xlabel('Languages', fontsize=15)
+        ax.set_ylabel('Number of tweets', fontsize=15)
+        ax.set_title('Top 5 languages', fontsize=15, fontweight='bold')
+        tweets_by_lang[:5].plot(ax=ax, kind='bar', color='red')
+
+        tweets_by_country = tweets['country'].value_counts()
+
+        fig, ax = plt.subplots()
+        ax.tick_params(axis='x', labelsize=15)
+        ax.tick_params(axis='y', labelsize=10)
+        ax.set_xlabel('Countries', fontsize=15)
+        ax.set_ylabel('Number of tweets', fontsize=15)
+        ax.set_title('Top 5 countries', fontsize=15, fontweight='bold')
+        tweets_by_country[:5].plot(ax=ax, kind='bar', color='blue')
+
+
+    if choice==1:
         retrive()
     if choice==2:
         followers()
@@ -112,6 +166,8 @@ while True:
     if choice==7:
         direct_msg()
     if choice==8:
+        Ploat_graph()
+    if choice==9:
         exit()
 
 
