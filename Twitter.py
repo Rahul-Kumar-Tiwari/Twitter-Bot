@@ -1,22 +1,23 @@
 import tweepy
-from tweepy.streaming import StreamListener
-from pprint import pprint
+from tweepy.streaming import  StreamListener
 import sys
+import re
 import time
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
 while True:
 
-    print("1.Retrive tweets")
-    print("2.Count the followers")
-    print("3.Determine the status")
-    print("4.Location language and Time Zone")
-    print("5.compare tweets")
-    print("6.Sentiment the Tweets")
-    print("7.Text a message")
-    print("8.To ploat the Graph")
-    print("9.Exit")
+    print("1.Retrive tweets:")
+    print("2.Count the followers:")
+    print("3.Update the status:")
+    print("4.Get Location,language and Time Zone:")
+    print("5.compare the Twitter users:")
+    print("6.Sentiment the Tweets and User:")
+    print("7.Text a message:")
+    # print("8.Plot the Graph:")
+    # print("9.map Ploting")
+    print("8.Exit")
     choice=int(input("Enter your choice: "))
     consumer_key = "uhHcvdFqHeHsRsUUwkXqJgx2L"
     consumer_secret = 'f6q2F7IB4WiEwZj9Bt7Uvtd8QlXOrhRBLCeEAthUrM30UxhqR5'
@@ -76,7 +77,8 @@ while True:
         get_api_key()
         for t in tmp:
             a = sentiment(t)
-            print(a)
+            print(t,"-->",a)
+            time.sleep(1)
             if a['sentiment'] == 'positive':
                 var1 += 1
             if a['sentiment'] == 'negative':
@@ -84,11 +86,11 @@ while True:
             if a['sentiment'] == 'neutral':
                 var3 += 1
         if (var1 > var2) and (var1 > var3):
-            print("positive")
+            print("This user is positive on Twitter")
         if (var2 > var3) and (var2 > var1):
-            print("negative")
+            print("This user is negative on Twitter")
         if (var3 > var2) and (var3 > var1):
-            print("neutral")
+            print("This user is neutral on Twitter")
     def comp():
         user_id = input("enter 1st id to Compare:")
         user = api.get_user(user_id)
@@ -97,26 +99,36 @@ while True:
         user1 = api.get_user(user_id1)
         a2 = user1.followers_count
         if a1>a2:
-            print("{} is the best user of twitter".format(user.name))
+            print("{},'{}' is the best user of twitter".format(user.name,user_id))
         else:
-            print("{} is the best user of twitter".format(user1.name))
+            print("{},{} is the best user of twitter".format(user1.name,user_id1))
     def Ploat_graph():
+        #This is a basic listener that just prints received tweets to stdout.
         class StdOutListener(StreamListener):
 
             def on_data(self, data):
-                print(data)
-                return True
+                try:
+                    print(data)
+                    saveFile=open("twitter_justin_data.txt",'a')
+                    saveFile.write(data)
+                    saveFile.write("\n")
+                    saveFile.close()
+                    return True
+                except BaseException as e:
+                    print('failed on data',str(e))
+                    time.sleep(5)
 
             def on_error(self, status):
                 print(status)
+
 
         l = StdOutListener()
         auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_token, access_token_secret)
         stream = tweepy.Stream(auth,l)
-        stream.filter(track=['python', 'javascript', 'ruby'])
+        stream.filter(track=['Justin Bieber'])
 
-        tweets_data_path = 'D:/twitter_data.txt'
+        tweets_data_path = 'twitter_justin_data.txt'
         tweets_data = []
         tweets_file = open(tweets_data_path, "r")
         for line in tweets_file:
@@ -125,29 +137,33 @@ while True:
                 tweets_data.append(tweet)
             except:
                 continue
-        print(len(tweets_data))
+            print(len(tweets_data))
         tweets = pd.DataFrame()
-        tweets['text'] = map(lambda tweet: tweet['text'], tweets_data)
-        tweets['lang'] = map(lambda tweet: tweet['lang'], tweets_data)
-        tweets['country'] = map(lambda tweet: tweet['place']['country'] if tweet['place'] != None else None, tweets_data)
+        tweets['text'] = list(map(lambda tweet: tweet['text'], tweets_data))
+        tweets['lang'] = list(map(lambda tweet: tweet['lang'], tweets_data))
+        tweets['country'] = list(map(lambda tweet: tweet['place']['country'] if tweet['place'] != None else None, tweets_data))
         tweets_by_lang = tweets['lang'].value_counts()
+
         fig, ax = plt.subplots()
         ax.tick_params(axis='x', labelsize=15)
         ax.tick_params(axis='y', labelsize=10)
+
         ax.set_xlabel('Languages', fontsize=15)
         ax.set_ylabel('Number of tweets', fontsize=15)
         ax.set_title('Top 5 languages', fontsize=15, fontweight='bold')
-        tweets_by_lang[:5].plot(ax=ax, kind='bar', color='red')
+        tweets_by_lang[0:5].plot(ax=ax, kind='bar', color='yellow')
 
         tweets_by_country = tweets['country'].value_counts()
-
         fig, ax = plt.subplots()
         ax.tick_params(axis='x', labelsize=15)
         ax.tick_params(axis='y', labelsize=10)
         ax.set_xlabel('Countries', fontsize=15)
         ax.set_ylabel('Number of tweets', fontsize=15)
         ax.set_title('Top 5 countries', fontsize=15, fontweight='bold')
-        tweets_by_country[:5].plot(ax=ax, kind='bar', color='blue')
+        tweets_by_country[0:5].plot(ax=ax, kind='bar', color='blue')
+        print(tweets_by_country)
+        plt.show()
+
 
 
     if choice==1:
@@ -165,9 +181,9 @@ while True:
         get_tweets(username)
     if choice==7:
         direct_msg()
-    if choice==8:
-        Ploat_graph()
-    if choice==9:
+    # if choice==8:
+    #     Ploat_graph()
+    if choice==10:
         exit()
 
 
